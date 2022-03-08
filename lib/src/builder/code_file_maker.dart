@@ -64,7 +64,7 @@ String _filterMessage(String msg){
   return msg;
 }
 
-String _filterKey(String key){
+String _filterKey(String? key){
   if(key==null){
     return '';
   }
@@ -81,7 +81,8 @@ bool makeDefinesDartCodeFile(
     getters.add(_makeGetterCode(value, key));
   });
   if (!outFile.existsSync()) {
-    outFile.createSync();
+    print('creating new File ${outFile.path}');
+    outFile.createSync(recursive: true);
   }
   String supportedLocaleCode = _makeSupportedLocaleCode(supportedLocale);
   String contentStr = _makeClassCodeString(className,supportedLocaleCode, getters.join());
