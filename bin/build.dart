@@ -18,11 +18,11 @@ final Map<String, String> helps = {
 };
 
 main(List<String> args) async {
-  String scanDir;
-  String outDir;
-  String genClass;
-  String genClassFileName;
-  String devLocaleStr;
+  String? scanDir;
+  String? outDir;
+  String? genClass;
+  String? genClassFileName;
+  String? devLocaleStr;
   var parser = new ArgParser();
   parser.addOption('scan-dir',
       callback: (x) => scanDir = x, help: helps['scan-dir']);
@@ -39,7 +39,7 @@ main(List<String> args) async {
   parser.parse(args);
 
   if (args.length == 0) {
-    Map<String, dynamic> json = readConfigFileJson();
+    Map<String, dynamic>? json = readConfigFileJson();
     if (json == null) {
       print('''
       can't find "$jsonConfigFileName" config file. and no valide args
@@ -62,7 +62,7 @@ main(List<String> args) async {
     exit(0);
     return;
   }
-  Locale devLocale = Locale.parse(devLocaleStr);
+  Locale devLocale = Locale.parse(devLocaleStr!);
   if (devLocale.isEmpty()) {
     print('--dev-locale invalide : $devLocaleStr');
     print(parser.usage);
@@ -70,22 +70,22 @@ main(List<String> args) async {
     return;
   }
   final File genClassFile =
-      File(path.join(path.absolute(outDir), genClassFileName));
+      File(path.join(path.absolute(outDir!), genClassFileName));
   IntlBuilder builder = IntlBuilder(
-      scanDir: path.absolute(scanDir),
-      outDir: path.absolute(outDir),
-      genClass: genClass,
+      scanDir: path.absolute(scanDir!),
+      outDir: path.absolute(outDir!),
+      genClass: genClass!,
       genClassFile: genClassFile,
       devLocale: devLocale);
   BuildResult result = builder.build();
-  if (result != null && result.isOk) {
+  if (result.isOk) {
     var shell = Shell();
     final cmd = 'flutter';
     List<String> args = [
       'packages',
       'pub',
       'run',
-      'intl_translation:generate_from_arb',
+      'intl_generator:generate_from_arb',
       '--output-dir=$outDir',
       '--no-use-deferred-loading',
       'lib/i18n/gen/$genClassFileName',
@@ -95,12 +95,12 @@ main(List<String> args) async {
       args.add('$outDir/$fileName');
       print('$outDir/$fileName');
     }
-    var cmdResult = await shell.startAndReadAsString(cmd, args);
+    var cmdResult = await shell.startAndReadAsString(cmd, arguments: args);
     print('build done $cmdResult,please check the outDir:$outDir');
   }
 }
 
-Map<String, dynamic> readConfigFileJson() {
+Map<String, dynamic>? readConfigFileJson() {
   File file = File(path.join(path.current, jsonConfigFileName));
   print(file.path);
   if (!file.existsSync()) {
