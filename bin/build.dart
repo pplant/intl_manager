@@ -51,7 +51,7 @@ main(List<String> args) async {
     scanDir = json['scan-dir'];
     outDir = json['out-dir'];
     genClass = json['gen-class'];
-    genClassFileName = json['file-name'];
+    genClassFileName = json['file-name'] ?? defClassFileName;
     devLocaleStr = json['dev-locale'];
   }
   if (scanDir == null ||
