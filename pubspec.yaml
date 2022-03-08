@@ -1,26 +1,29 @@
 name: intl_manager
 description: A library tool that help you manager i18n strings in flutter,include convert from android "strings-xx.xml".
 version: 0.0.4+3
-author: iflutter team <shenkaige86@gmail.com>
 homepage: https://github.com/iflutter/intl_manager
 
 environment:
-  sdk: ">=2.1.0 <3.0.0"
+  sdk: ">=2.12.0 <3.0.0"
 
 dependencies:
   flutter:
     sdk: flutter
-  intl: '>=0.15.7'
-  intl_translation: '>=0.17.3'
-  xml: '>=3.3.1'
-  args: '>=0.12.1'
-  shell: '>=1.0.1'
-  string_unescape: '>=1.5.1'
-  path: '>=1.6.2'
+  intl: ^0.17.0
+  xml: ^5.3.1
+  args: ^2.3.0
+  shell: ^2.0.0
+  string_unescape: ^2.0.0
+  path: ^1.8.0
+  intl_generator: ^0.2.1
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
+
+dependency_overrides:
+  dart_style: ^2.2.2
+  analyzer: ^3.3.1
 
 # For information on the generic Dart part of this file, see the
 # following page: https://www.dartlang.org/tools/pub/pubspec

@@ -73,7 +73,7 @@ String _filterKey(String key){
 
 bool makeDefinesDartCodeFile(
     File outFile, String className, Map<String, dynamic> arbJson,List<I18nEntity> supportedLocale) {
-  List<String> getters = new List();
+  List<String> getters = [];
   arbJson.forEach((key, value) {
     if (key.startsWith('@')) {
       return;

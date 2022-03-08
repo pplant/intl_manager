@@ -1,6 +1,6 @@
 class Locale {
   String languageCode;
-  String countryCode;
+  String? countryCode;
 
   Locale(this.languageCode, [this.countryCode]);
 

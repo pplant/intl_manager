@@ -17,19 +17,19 @@ class BuildResult {
 class IntlBuilder {
   final RegExp stringsXmlNameReg =
   RegExp('^strings(-[a-zA-Z]{1,10})(-[a-zA-Z]{1,10})?.xml\$');
-  Directory scanDir;
-  Directory outDir;
-  File outDefineDartFile;
-  String genClass;
-  File genClassFile;
-  Locale devLocale;
-  final List<I18nEntity> i18nEnttitys = List();
+  late Directory scanDir;
+  late Directory outDir;
+  late File outDefineDartFile;
+  late String genClass;
+  late File genClassFile;
+  late Locale devLocale;
+  final List<I18nEntity> i18nEnttitys = [];
 
-  IntlBuilder({String scanDir,
-    String outDir,
-    String genClass,
-    File genClassFile,
-    Locale devLocale}) {
+  IntlBuilder({required String scanDir,
+    required String outDir,
+    required String genClass,
+    required File genClassFile,
+    required Locale devLocale}) {
     //
     this.scanDir = Directory(scanDir);
     this.outDir = Directory(outDir);
@@ -51,9 +51,9 @@ class IntlBuilder {
     for (FileSystemEntity fe in fseList) {
       if (fe is File) {
         String fileName = path.basename(fe.path);
-        Match matched = stringsXmlNameReg.firstMatch(fileName);
-        String languageCode;
-        String countryCode;
+        Match? matched = stringsXmlNameReg.firstMatch(fileName);
+        String? languageCode;
+        String? countryCode;
         if (matched != null && matched.groupCount > 0) {
           languageCode = matched.group(1);
           languageCode = languageCode?.replaceAll('-', '');
@@ -79,9 +79,7 @@ class IntlBuilder {
     List<String> arbFileNames = [];
     for (I18nEntity en in i18nEnttitys) {
       String fileName = en.makeArbFileName('intl');
-      if (arbFileNames != null) {
-        arbFileNames.add(fileName);
-      }
+      arbFileNames.add(fileName);
       _buildI18Entity(en, fileName);
     }
     return BuildResult(arbFileNames, true);
