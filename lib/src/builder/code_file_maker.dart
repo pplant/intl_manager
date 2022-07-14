@@ -97,6 +97,7 @@ bool makeDefinesDartCodeFile(
       int iterCounter = 1;
       final newValue = value.replaceAllMapped(regExp, (match) {
         final arg = "arg_$iterCounter";
+        iterCounter+= 1;
         args.add(arg);
         return '\$$arg';
       });
