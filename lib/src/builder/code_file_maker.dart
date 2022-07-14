@@ -1,5 +1,11 @@
 part of './builder.dart';
 
+RegExp regExp = new RegExp(
+  r"(%[1-9]\$[sd])",
+  caseSensitive: false,
+  multiLine: true,
+);
+
 String _makeClassCodeString(String className,String supportedLocaleCode, String getterCode) {
   return '''
 // DO NOT EDIT. This is code generated via package:intl_manager
@@ -18,6 +24,13 @@ String _makeGetterCode(String message, String key) {
   key = _filterKey(key);
   return '''
   String get $key => Intl.message('$message', name: '$key');\n''';
+}
+
+String _makeGetterCodeWithArgs(String message, String key, List<String> args) {
+  message = _filterMessage(message);
+  key = _filterKey(key);
+  return '''
+  String $key(${args.join(',')}) => Intl.message('$message', name: '$key', args: $args);\n''';
 }
 
 String _makeSupportedLocaleCode(List<I18nEntity> supportedLocale) {
@@ -78,7 +91,19 @@ bool makeDefinesDartCodeFile(
     if (key.startsWith('@')) {
       return;
     }
-    getters.add(_makeGetterCode(value, key));
+    // check if we have a formatArgs, if so replace with flutter-compatible one
+    if (regExp.hasMatch(value)) {
+      List<String> args = [];
+      int iterCounter = 1;
+      final newValue = value.replaceAllMapped(regExp, (match) {
+        final arg = "arg_$iterCounter";
+        args.add(arg);
+        return '\$$arg';
+      });
+      getters.add(_makeGetterCodeWithArgs(newValue, key, args));
+    } else {
+      getters.add(_makeGetterCode(value, key));
+    }
   });
   if (!outFile.existsSync()) {
     print('creating new File ${outFile.path}');
