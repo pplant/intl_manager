@@ -6,6 +6,18 @@ RegExp regExp = new RegExp(
   multiLine: true,
 );
 
+RegExp one = new RegExp(
+  r"=1{(.*?)} other{",
+  caseSensitive: false,
+  multiLine: true,
+);
+
+RegExp other = new RegExp(
+  r"} other{(.*?)}}",
+  caseSensitive: false,
+  multiLine: true,
+);
+
 String _makeClassCodeString(String className,String supportedLocaleCode, String getterCode) {
   return '''
 // DO NOT EDIT. This is code generated via package:intl_manager
@@ -31,6 +43,14 @@ String _makeGetterCodeWithArgs(String message, String key, List<String> args) {
   key = _filterKey(key);
   return '''
   String $key(${args.join(',')}) => Intl.message('$message', name: '$key', args: $args);\n''';
+}
+
+String _makePluralCode(String one, String other, String key) {
+  one = _filterMessage(one);
+  other = _filterMessage(other);
+  key = _filterKey(key);
+  return '''
+  String $key(num count) => Intl.plural(count, one: '${one.replaceAll('{count}', '\$count')}', other: '${other.replaceAll('{count}', '\$count')}', name: '$key', args: [count]);\n''';
 }
 
 String _makeSupportedLocaleCode(List<I18nEntity> supportedLocale) {
@@ -91,8 +111,11 @@ bool makeDefinesDartCodeFile(
     if (key.startsWith('@')) {
       return;
     }
+    final String finalValue = value;
     // check if we have a formatArgs, if so replace with flutter-compatible one
-    if (regExp.hasMatch(value)) {
+    if (one.hasMatch(finalValue) && other.hasMatch(finalValue)) {
+      getters.add(_makePluralCode(one.firstMatch(finalValue)!.group(1)!, other.firstMatch(finalValue)!.group(1)!, key));
+    } else if (regExp.hasMatch(value)) {
       List<String> args = [];
       int iterCounter = 1;
       final newValue = value.replaceAllMapped(regExp, (match) {
