@@ -2,6 +2,9 @@ import 'dart:io';
 import 'package:xml/xml.dart' as xml;
 import 'package:string_unescape/string_unescape.dart';
 
+final RegExp stringPlaceHolders = RegExp(r'\%\d\$s');
+final RegExp numberPlaceHolders = RegExp(r'\%\d\$d');
+
 class Xml2Arb {
   static Map<String, dynamic> convertFromFile(String filePath, String locale) {
     Map<String, dynamic> converted;
@@ -36,8 +39,28 @@ class Xml2Arb {
       String? key = getNodeStringKey(se);
       String? arbKey = normalizeKeyName(key);
       if (arbKey != null && arbKey.isNotEmpty) {
-        arbJson[arbKey] = unescape(se.text);
-        arbJson['@$arbKey'] = {'type': 'text'};
+        String newValue = unescape(se.text);
+        Map<String, dynamic> placeholders = {};
+        int iterCounter = 1;
+        if(stringPlaceHolders.hasMatch(newValue)) {
+          newValue = newValue.replaceAllMapped(stringPlaceHolders, (match) {
+            final arg = "string_arg_$iterCounter";
+            iterCounter+= 1;
+            placeholders.putIfAbsent(arg, () => {'type': 'String'});
+            return '{$arg}';
+          });
+        }
+        iterCounter = 1;
+        if(numberPlaceHolders.hasMatch(newValue)) {
+          newValue = newValue.replaceAllMapped(numberPlaceHolders, (match) {
+            final arg = "int_arg_$iterCounter";
+            iterCounter+= 1;
+            placeholders.putIfAbsent(arg, () => {'type': 'int'});
+            return '{$arg}';
+          });
+        }
+        arbJson[arbKey] = newValue;
+        arbJson['@$arbKey'] = {'type': 'text', ...placeholders.isNotEmpty ? { "placeholders": placeholders} : {}};
       }
     }
     return arbJson;

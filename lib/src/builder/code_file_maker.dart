@@ -1,10 +1,13 @@
 part of './builder.dart';
 
 RegExp regExp = new RegExp(
-  r"(%[1-9]\$[sd])",
+  r'\{[a-zA-Z]+_arg_\d+\}',
   caseSensitive: false,
   multiLine: true,
 );
+
+RegExp intRegex = RegExp(r'\{int_arg_\d+\}');
+RegExp stringRegex = RegExp(r'\{string_arg_\d+\}');
 
 RegExp one = new RegExp(
   r"=1{(.*?)} other{",
@@ -41,8 +44,9 @@ String _makeGetterCode(String message, String key) {
 String _makeGetterCodeWithArgs(String message, String key, List<String> args) {
   message = _filterMessage(message);
   key = _filterKey(key);
+  final arguments = args.map((e) => e.replaceAll('int ', '').replaceAll('String ', '')).toList();
   return '''
-  String $key(${args.join(',')}) => Intl.message('$message', name: '$key', args: $args);\n''';
+  String $key(${args.join(',')}) => Intl.message('$message', name: '$key', args: $arguments);\n''';
 }
 
 String _makePluralCode(String one, String other, String key) {
@@ -121,7 +125,7 @@ bool makeDefinesDartCodeFile(
       final newValue = value.replaceAllMapped(regExp, (match) {
         final arg = "arg_$iterCounter";
         iterCounter+= 1;
-        args.add(arg);
+        args.add('${intRegex.hasMatch(match.group(0)) ? 'int' : 'String'} $arg');
         return '\$$arg';
       });
       getters.add(_makeGetterCodeWithArgs(newValue, key, args));
