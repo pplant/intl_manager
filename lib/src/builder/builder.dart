@@ -78,7 +78,7 @@ class IntlBuilder {
     }
     List<String> arbFileNames = [];
     for (I18nEntity en in i18nEntities) {
-      String fileName = en.makeArbFileName('intl');
+      String fileName = en.makeArbFileName('app');
       arbFileNames.add(fileName);
       _buildI18Entity(en, fileName);
     }
