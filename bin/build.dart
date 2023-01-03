@@ -15,6 +15,7 @@ final Map<String, String> helps = {
   'file-name':
       'the dart file name of auto generated.default is:"$defClassFileName"',
   'dev-locale': 'use which locale content to generate default dart class',
+  'skip-defines': 'do not generate generate default dart class',
 };
 
 main(List<String> args) async {
@@ -23,6 +24,7 @@ main(List<String> args) async {
   String? genClass;
   String? genClassFileName;
   String? devLocaleStr;
+  bool? skipDefinesGeneration;
   var parser = new ArgParser();
   parser.addOption('scan-dir',
       callback: (x) => scanDir = x, help: helps['scan-dir']);
@@ -36,6 +38,8 @@ main(List<String> args) async {
       help: helps['file-name']);
   parser.addOption('dev-locale',
       callback: (x) => devLocaleStr = x, help: helps['dev-locale']);
+  parser.addOption('skip-defines',
+      callback: (x) => skipDefinesGeneration = x == 'true' ? true : false, help: helps['skip-defines']);
   parser.parse(args);
 
   if (args.length == 0) {
@@ -53,42 +57,48 @@ main(List<String> args) async {
     genClass = json['gen-class'];
     genClassFileName = json['file-name'] ?? defClassFileName;
     devLocaleStr = json['dev-locale'];
+    skipDefinesGeneration = json['skip-defines'] ?? false;
   }
   if (scanDir == null ||
       outDir == null ||
-      genClass == null ||
-      devLocaleStr == null) {
+      (skipDefinesGeneration == false && (genClass == null ||
+          devLocaleStr == null))) {
     print(parser.usage);
     exit(0);
     return;
   }
-  Locale devLocale = Locale.parse(devLocaleStr!);
-  if (devLocale.isEmpty()) {
-    print('--dev-locale invalide : $devLocaleStr');
-    print(parser.usage);
-    exit(0);
-    return;
+  Locale? devLocale;
+  if (skipDefinesGeneration == false) {
+    devLocale = Locale.parse(devLocaleStr!);
+    if (devLocale.isEmpty()) {
+      print('--dev-locale invalide : $devLocaleStr');
+      print(parser.usage);
+      exit(0);
+      return;
+    }
   }
   final File genClassFile =
       File(path.join(path.absolute(outDir!), genClassFileName));
   IntlBuilder builder = IntlBuilder(
       scanDir: path.absolute(scanDir!),
       outDir: path.absolute(outDir!),
-      genClass: genClass!,
+      genClass: genClass,
       genClassFile: genClassFile,
-      devLocale: devLocale);
+      devLocale: devLocale,
+      skipDefinesGeneration: skipDefinesGeneration ?? false,
+  );
   BuildResult result = builder.build();
-  if (result.isOk) {
+  if (result.isOk && skipDefinesGeneration == false) {
     var shell = Shell();
     final cmd = 'flutter';
     List<String> args = [
-      'packages',
-      'pub',
-      'run',
-      'intl_generator:generate_from_arb',
-      '--output-dir=$outDir',
-      '--no-use-deferred-loading',
-      'lib/i18n/gen/$genClassFileName',
+        'packages',
+        'pub',
+        'run',
+        'intl_generator:generate_from_arb',
+        '--output-dir=$outDir',
+        '--no-use-deferred-loading',
+        'lib/i18n/gen/$genClassFileName',
     ];
 
     for (String fileName in result.arbFilenNames) {

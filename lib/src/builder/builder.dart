@@ -19,17 +19,20 @@ class IntlBuilder {
   RegExp('^strings(-[a-zA-Z]{1,10})(-[a-zA-Z]{1,10})?.xml\$');
   late Directory scanDir;
   late Directory outDir;
-  late File outDefineDartFile;
-  late String genClass;
-  late File genClassFile;
-  late Locale devLocale;
+  late File? outDefineDartFile;
+  late String? genClass;
+  late File? genClassFile;
+  late Locale? devLocale;
+  late bool skipDefinesGeneration;
   final List<I18nEntity> i18nEntities = [];
 
   IntlBuilder({required String scanDir,
     required String outDir,
-    required String genClass,
-    required File genClassFile,
-    required Locale devLocale}) {
+    this.genClass,
+    this.genClassFile,
+    this.devLocale,
+    required this.skipDefinesGeneration,
+  }) {
     //
     this.scanDir = Directory(scanDir);
     this.outDir = Directory(outDir);
@@ -43,6 +46,7 @@ class IntlBuilder {
     print(this.outDir);
     print(this.devLocale);
     print(outDefineDartFile);
+    print(this.skipDefinesGeneration);
   }
 
   BuildResult build() {
@@ -64,15 +68,18 @@ class IntlBuilder {
         }
         if (languageCode != null) {
           Locale locale = Locale(languageCode, countryCode);
-          bool isDevLang = locale.isSameLocale(devLocale);
-          if (!foundDevLang) {
-            foundDevLang = isDevLang;
+          bool isDevLang = false;
+          if (devLocale != null) {
+            isDevLang = locale.isSameLocale(devLocale!);
+            if (!foundDevLang) {
+              foundDevLang = isDevLang;
+            }
           }
           i18nEntities.add(I18nEntity(locale, fe.path, isDevLang));
         }
       }
     }
-    if (!foundDevLang) {
+    if (!skipDefinesGeneration && !foundDevLang) {
       print("dev-locale:$devLocale's file was not found");
       exit(0);
     }
@@ -94,9 +101,9 @@ class IntlBuilder {
       outFile.createSync();
     }
     outFile.writeAsStringSync(jsonStr);
-    if (entity.isDevLanguage) {
+    if (!skipDefinesGeneration && entity.isDevLanguage) {
       makeDefinesDartCodeFile(
-          this.outDefineDartFile, this.genClass, jsonObj, i18nEntities);
+          this.outDefineDartFile!, this.genClass!, jsonObj, i18nEntities);
     }
   }
 }
