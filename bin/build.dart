@@ -88,7 +88,7 @@ main(List<String> args) async {
       skipDefinesGeneration: skipDefinesGeneration ?? false,
   );
   BuildResult result = builder.build();
-  if (result.isOk && skipDefinesGeneration == false) {
+  if (result.isOk) {
     var shell = Shell();
     final cmd = 'flutter';
     List<String> args = [
@@ -101,12 +101,14 @@ main(List<String> args) async {
         'lib/i18n/gen/$genClassFileName',
     ];
 
-    for (String fileName in result.arbFilenNames) {
-      args.add('$outDir/$fileName');
-      print('$outDir/$fileName');
+    if (skipDefinesGeneration == false) {
+      for (String fileName in result.arbFilenNames) {
+        args.add('$outDir/$fileName');
+        print('$outDir/$fileName');
+      }
+      var cmdResult = await shell.startAndReadAsString(cmd, arguments: args,);
+      print('build done $cmdResult,please check the outDir:$outDir');
     }
-    var cmdResult = await shell.startAndReadAsString(cmd, arguments: args);
-    print('build done $cmdResult,please check the outDir:$outDir');
   }
 }
 
